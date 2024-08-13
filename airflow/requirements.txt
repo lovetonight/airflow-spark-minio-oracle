@@ -1,0 +1,4 @@
+cx_Oracle
+pyspark==3.2.1
+psycopg2_binary==2.9.3
+openpyxl==3.1.2

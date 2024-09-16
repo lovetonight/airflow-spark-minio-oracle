@@ -5,29 +5,37 @@ from airflow import DAG
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.operators.python_operator import PythonOperator
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
-
 from airflow.macros import ds_format
 from datetime import date, timedelta, datetime
+from airflow.models import Variable
 
 
-jar_path = "/usr/local/spark/assets/jars/"
-oracle_driver_jar = f"{jar_path}ojdbc8-19.3.0.0.jar,{jar_path}/aws-java-sdk-bundle-1.11.375.jar,{jar_path}hadoop-aws-3.2.0.jar"
-oracle_user = "BAI_TEST"
-oracle_pwd = "password"
-oracle_url = "jdbc:oracle:thin:@oracle-xe:1521:XE"
-oracle_table = 'Weather'
-spark_master = "spark://spark:7077"
 
 
+
+# S3
 S3_BUCKET = "codingtest"
 S3_RAW_KEY = "raw"
 S3_CONN = 'minio_conn'
+
+# ORACLE
+jar_path = "/usr/local/spark/assets/jars/"
+jars = ["ojdbc8-19.3.0.0.jar", "aws-java-sdk-bundle-1.11.375.jar", "hadoop-aws-3.2.0.jar"]
+ORACLE_DRIVER_JAR = ",".join(f"{jar_path}{jar}" for jar in jars)
+ORACLE_USER = "BAI_TEST"
+ORACLE_PASSWORD = Variable.get("ORACLE_PASSWORD")
+ORACLE_URL = "jdbc:oracle:thin:@oracle-xe:1521:XE"
+ORACLE_TABLE = 'Weather'
+
+
 FILE_NAME = 'data.json'
 STORAGE = "/tmp/data"
 API_URL = 'https://api.openweathermap.org/data/2.5/forecast?appid={}&lat={}&lon={}'
 LAT = '21.0278'
 LON = '105.8342'
-APPID = 'ceba7e93b0ffd265155165892ef6d48b'
+APPID = Variable.get("WEATHER_API_KEY")
+spark_master = "spark://spark:7077"
+
 
 # Support function
 
@@ -137,10 +145,10 @@ read_from_oracle = SparkSubmitOperator(
     conn_id="spark_conn",
     verbose=1,
     conf={"spark.master": spark_master},
-    application_args=[oracle_url, oracle_table,
-                      oracle_user, oracle_pwd, S3_BUCKET, dest_path],
-    jars=oracle_driver_jar,
-    driver_class_path=oracle_driver_jar,
+    application_args=[ORACLE_URL, ORACLE_TABLE,
+                      ORACLE_USER, ORACLE_PASSWORD, S3_BUCKET, dest_path],
+    jars=ORACLE_DRIVER_JAR,
+    driver_class_path=ORACLE_DRIVER_JAR,
     dag=dag)
 
 get_data_from_url >> upload_to_minio >> read_from_oracle

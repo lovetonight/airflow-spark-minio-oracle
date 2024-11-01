@@ -4,7 +4,7 @@ services:
     airflow-webserver:
         hostname: airflow
         container_name: airflow
-        image: docker-airflow2:latest
+        image: lovetonight/docker-airflow2:latest
         restart: always
         networks:
             - airflow
@@ -63,8 +63,8 @@ services:
         container_name: bucket
         image: 'bitnami/minio:latest'
         environment:
-            MINIO_ROOT_USER: airflow
-            MINIO_ROOT_PASSWORD: airflow
+            MINIO_ROOT_USER: airflow2
+            MINIO_ROOT_PASSWORD: airflow2
         ports:
             - '9000:9000'
             - '9001:9001'
@@ -131,8 +131,8 @@ services:
         environment:
             - SPARK_MODE=worker
             - SPARK_MASTER_URL=spark://spark:7077
-            - SPARK_WORKER_MEMORY=1G
-            - SPARK_WORKER_CORES=1
+            - SPARK_WORKER_MEMORY=2G
+            - SPARK_WORKER_CORES=2
             - SPARK_RPC_AUTHENTICATION_ENABLED=no
             - SPARK_RPC_ENCRYPTION_ENABLED=no
             - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
@@ -145,7 +145,7 @@ services:
         deploy:
           resources:
             limits:
-              memory: 1GB
+              memory: 2GB
     oracle-xe:
         hostname: oracle
         image: gvenzl/oracle-xe
